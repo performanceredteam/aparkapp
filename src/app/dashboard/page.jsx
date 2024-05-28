@@ -57,6 +57,7 @@ function Dashboard() {
           <div className='container mx-auto'>
             <div className='flex-auto'>
               <Metrics />
+              
               <TablaVisitasDs />
             </div>
           </div>

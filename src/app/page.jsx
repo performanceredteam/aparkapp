@@ -17,7 +17,7 @@ function Home() {
   const handleSubmit = async e =>{
     e.preventDefault()
     
-    const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api-token-auth/`, {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/bobot-api/api-token-auth/`, {
       method: 'POST',
       body: JSON.stringify({'username': usuario, 'password': password}),
       headers:{
@@ -30,6 +30,9 @@ function Home() {
     if(data.token){
       //console.log(data)
       window.sessionStorage.setItem('token', data.token);
+      window.sessionStorage.setItem('username', data.user);
+      window.sessionStorage.setItem('name', data.name);
+      window.sessionStorage.setItem('last', data.last);
       router.push('/dashboard')
     }else{
       alert("Error valide Usuario/Password")
@@ -50,6 +53,7 @@ function Home() {
             <label htmlFor="user" className='block text-xs text-gray-600 uppercase'>Usuario</label>
             <input type="text" name="" id="user" placeholder='Usuario' required className='mt-1 block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 placeholder-gray-400 shadow-sm focus:border-black focus:outline-none focus:ring-black sm:text-sm'
             onChange={e => setUsuario(e.target.value)}
+            style={{textTransform: 'lowercase'}}
             />
           </div>
           

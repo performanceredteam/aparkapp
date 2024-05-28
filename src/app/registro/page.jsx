@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import NavBar from '../components/NavBar'
 import { useEffect, useState, useRef } from 'react'
 import Select from "react-dropdown-select"
-//import { InputMask } from 'input-mask-react'
+import { useReactToPrint } from "react-to-print";
 import InputMask from "react-input-mask";
 import Modal from 'react-modal';
 import nProgress from 'nprogress'
@@ -22,6 +22,9 @@ function Registro() {
   const [getActionActive4, setActionActive4] = useState([])
   const [getBorderActive4, setBorderActive4] = useState([])
 
+  const [getImpresoraStatus, setImpresoraStatus] = useState(false)
+  const [getConjuntoInfo, setConjuntoInfo] = useState([])
+
   const [getTipoPlacaVehiculo, setTipoPlacaVehiculo] = useState([])
   const [getInfoPlacaVehiculo, setInfoPlacaVehiculo] = useState([])
   const [getInfoCedulaVisitante, setInfoCedulaVisitante] = useState([])
@@ -30,6 +33,7 @@ function Registro() {
   const [getApto, setApto] = useState([])
   const [getResidente, setResidente] = useState([])
   const initialized = useRef(false)
+  const componentRef = useRef();
 
   const dataTorresList=[]
   const dataAptosList=[]
@@ -48,12 +52,60 @@ function Registro() {
 
   const [getbtnSiguienteResidente, setbtnSiguienteResidente] = useState(true)
   const [getbtnSiguienteVisitante, setbtnSiguienteVisitante] = useState(true)
+  const [getbtnFinalizar, setbtnFinalizar] = useState(true)
+  const [getbtnNuevaBusqueda, setbtnNuevaBusqueda] = useState(true)
+
+  const [getStatusTorres, setStatusTorres] = useState(false)
+  const [getStatusAptos, setStatusAptos] = useState(false)
+  const [getStatusLoadigAptosTorres, setStatusLoadigAptosTorres] = useState(true)
+
+
+  const [getTipoVehiculo, setTipoVehiculo] = useState([])
+  const [getSlotVisita, setSlotVisita] = useState([])
+  const [getFechaHoraIngresoVisita, setFechaHoraIngresoVisita] = useState([])
+  const [getResidenteData, setResidenteData] = useState([])
+  const [getVisitanteData, setVisitanteData] = useState([])
+  const [getAptoResidente, setAptoResidente] = useState([])
+  const [getMensaje, setMensaje] = useState([])
+  
   
 
   if(typeof window !== 'undefined'){
     const token = window.sessionStorage.getItem('token')  //window.sessionStorage.getItem('token')
     if(!token){
       router.push('/')
+    }
+  }
+
+  //Set Impresora
+  const statusImpresora = async () => {
+    const token = window.sessionStorage.getItem('token') 
+    const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/bobot-api/impresora/`, {
+      method: 'GET',
+      headers:{
+        "Authorization" : `Token ${token}`,
+      }
+    }) 
+
+    const dataImpresora = await response.json()
+    const statusImpresoraInfo = dataImpresora.Impresora[0].cg_impresora
+    //console.log(statusImpresoraInfo)
+    setImpresoraStatus(statusImpresoraInfo)
+
+    if(statusImpresoraInfo === true){
+      const token = window.sessionStorage.getItem('token') 
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/bobot-api/conjunto/`, {
+        method: 'GET',
+        headers:{
+          "Authorization" : `Token ${token}`,
+        }
+      }) 
+
+      const dataConjunto = await response.json()
+      const dataConjuntoInfo = dataConjunto.Conjunto[0]
+      //console.log(dataConjuntoInfo)
+      setMensaje(dataConjuntoInfo.cj_msn.match(/.{1,35}/g).join("<br />"))   
+      setConjuntoInfo(dataConjuntoInfo)
     }
   }
 
@@ -89,7 +141,6 @@ function Registro() {
       }
 
       setApto(dataAptosList)
-
     }
   }
 
@@ -137,8 +188,23 @@ function Registro() {
     const textResidente = dataResidentes.Propietario 
     //Set idPropietario
     window.sessionStorage.setItem('idPropietario', dataResidentes.Propietario.id);
+    console.log(dataResidentes.Propietario)
+    setResidenteData('Residente:'+dataResidentes.Propietario.ph_propietario)
+    setAptoResidente('Apto:'+dataResidentes.Propietario.ph_torre+'-'+dataResidentes.Propietario.ph_apartamento)
     setbtnSiguienteResidente(false)
     setResidente(textResidente)    
+    setStatusTorres(true)
+    setStatusAptos(true)
+    setbtnNuevaBusqueda(false)
+    setStatusLoadigAptosTorres(false)
+  }
+
+  function nuevaBusqueda(){
+    setStatusTorres(false)
+    setStatusAptos(false)
+    setbtnNuevaBusqueda(true)
+    setStatusLoadigAptosTorres(true)
+    setbtnSiguienteResidente(true)
   }
 
   
@@ -171,9 +237,11 @@ function Registro() {
 
   //Step 3
   //Buscar Placa de Vehiculo
+  /*
   Modal.setAppElement('#placaModal');
   Modal.setAppElement('#cedulaModal');
-
+  Modal.setAppElement('#ticketImpresora');
+*/
   const customStyles = {
     content: {
       top: '50%',
@@ -182,8 +250,20 @@ function Registro() {
       bottom: 'auto',
       marginRight: '-50%',
       transform: 'translate(-50%, -50%)',
+
     },
   };
+  const customStylesTicket = {
+    content: {
+    top: '50%',
+    left: '63%',
+    right: 'auto',
+    bottom: '-30%',
+    marginRight: '-50%',
+    transform: 'translate(-50%, -50%)',
+
+    },
+};
 
   function closeModal() {
     setIsOpen(false);
@@ -192,6 +272,8 @@ function Registro() {
   function closeModalCedula() {
     setIsOpenCedula(false);
   }
+
+
 
   function getPlacaVheiculo(e){
     const placaVehiculo = e.target.value
@@ -204,8 +286,8 @@ function Registro() {
   }
 
   function getNombreVisitante(e){
-    console.log(e.target.value)
-    const nombreVisita = e.target.value
+    const nombreVisita = e.target.value.replace(/[^a-zA-Z\s]*$/gi, '')
+    //console.log(nombreVisita)
     setNomVisita(nombreVisita)
   }
 
@@ -220,7 +302,7 @@ function Registro() {
     const gettipovehiculo = window.sessionStorage.getItem('vh_tipo');
     let tipoVehiculoSlot=""
     if(gettipovehiculo == 1){
-      tipoVehiculoSlot = "Carro"
+      tipoVehiculoSlot = "Carro" 
     }else if(gettipovehiculo == 2){
       tipoVehiculoSlot = "Moto"
     }
@@ -236,9 +318,11 @@ function Registro() {
     const totalSlot = dataSlot.ParqueaderosDisponibles.length
     if(totalSlot > 0){
       window.sessionStorage.setItem('pk_slot',dataSlot.ParqueaderosDisponibles[0].pk_slot)
+      setTipoVehiculo('Ingreso:'+tipoVehiculoSlot)
+      setSlotVisita('Slot:'+dataSlot.ParqueaderosDisponibles[0].pk_slot)
       //console.log(dataSlot.ParqueaderosDisponibles[0].pk_slot)
     }else{
-      setInfoPlacaVehiculo("Sin Parkeaderos")
+      setInfoPlacaVehiculo("Sin Slots de Parqueaderos")
     }
   }
 
@@ -304,13 +388,15 @@ function Registro() {
     })
     //console.log(getPlacaVehiculo)
     const dataCedulaVisitante = await response.json()
-    console.log(dataCedulaVisitante)
+    //console.log(dataCedulaVisitante)
     if(dataCedulaVisitante.Message == "Success"){
       window.sessionStorage.setItem('vd_cedula', dataCedulaVisitante.CedulaVisitante.vd_cedula);
       window.sessionStorage.setItem('vd_nombre', dataCedulaVisitante.CedulaVisitante.vd_nombre);
       window.sessionStorage.setItem('vd_telefono', dataCedulaVisitante.CedulaVisitante.vd_telefono);
       setInfoCedulaVisitante(dataCedulaVisitante.CedulaVisitante.vd_nombre)
       ingresoCedulaVisitante()
+      let OfsCedula = dataCedulaVisitante.CedulaVisitante.vd_cedula
+      setVisitanteData('Visitante:'+dataCedulaVisitante.CedulaVisitante.vd_nombre+' '+'Cedula:'+OfsCedula.toString().substring(OfsCedula.length,5)+'***')
       setbtnSiguienteVisitante(false)
     }else{
       setInfoCedulaVisitante(dataCedulaVisitante.Message)
@@ -363,6 +449,7 @@ function Registro() {
     if(dataCedulaVisitante.Message == "Success"){
       window.sessionStorage.setItem('vd_cedula', dataCedulaVisitante.Visitante.vd_cedula);
       setInfoCedulaVisitante(dataCedulaVisitante.Visitante.vd_nombre)
+      setVisitanteData('Visitante:'+dataCedulaVisitante.Visitante.vd_nombre+' '+'Cedula:'+dataCedulaVisitante.Visitante.vd_cedula)
       setbtnSiguienteVisitante(false)
       closeModalCedula()
     }else{
@@ -414,6 +501,7 @@ function Registro() {
 
     const ingreso = await response.json()
     window.sessionStorage.setItem('f_ingreso', ingreso.FechaHoraIngreso)
+    setFechaHoraIngresoVisita(ingreso.FechaHoraIngreso)
     registroIngresoVisitanteVehiculo()
 
   }
@@ -446,10 +534,21 @@ function Registro() {
         }
       })
 
+      statusImpresora()
       setdataIngreso(dataIngreso.Ingreso)
+      setbtnFinalizar(false)
     nProgress.done()
   }
 
+  const handlePrint = useReactToPrint({
+      content: () => componentRef.current,
+    }
+  );
+  
+  function imprimirTicket(){
+    handlePrint()
+    setImpresoraStatus(false)
+  }
 
 //Finalizar
 function finalizarRegistro(){
@@ -466,11 +565,16 @@ function finalizarRegistro(){
         
 }
 
+
+
   useEffect(() => {
     if(!initialized.current) {
+      nProgress.start()
         initialized.current = true
-        nProgress.start()
+        
           getAptos()
+          
+          
           //getResidentes()
           window.sessionStorage.removeItem('idPropietario')
           window.sessionStorage.removeItem('vh_tipo')
@@ -506,7 +610,9 @@ function finalizarRegistro(){
 
           setbtnSiguienteResidente(true)
           setbtnSiguienteVisitante(true)
-        nProgress.done()
+          setbtnFinalizar(true)
+          setbtnNuevaBusqueda(true)
+      nProgress.done()
     }
   })
   
@@ -558,7 +664,7 @@ function finalizarRegistro(){
               
 
 
-                <div id="step-1" className='m-6 grid gap-4 sm:grid-cols-2 grid-cols-2'>
+                <div id="step-1" className='m-6 grid gap-4 sm:grid-cols-2 grid-cols-1'>
                     <div className='min-h-[100px] rounded-lg text-gray-500 bg-white shadow dark:text-gray-400 dark:bg-gray-800" '>
                       <div className='m-6 grid gap-4 sm:grid-cols-1 grid-cols-1'>
                             <button className='focus:outline-none text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800'
@@ -575,22 +681,26 @@ function finalizarRegistro(){
                 </div>
 
                 <div id="step-2">
-                  <div className='m-6 grid gap-4 sm:grid-cols-2 grid-cols-2'>
-                    <Select options={getTorres} placeholder="Torres" labelField='tr_torre' valueField='tr_torre' onChange={getTorreList => setTorreList(getTorreList)}/>
-                    <Select options={getApto} placeholder="Apartamentos" labelField='ph_apartamentocasa' valueField='ph_apartamentocasa' onChange={getAptoList => setAptoList(getAptoList)}/>
+                  <div className='m-6 grid gap-4 sm:grid-cols-2 grid-cols-1'>
+                    <Select options={getTorres} placeholder="Torres" labelField='tr_torre' valueField='tr_torre' onChange={getTorreList => setTorreList(getTorreList)}
+                    loading={getStatusLoadigAptosTorres} disabled={getStatusTorres}/>
+                    <Select options={getApto} placeholder="Apartamentos" labelField='ph_apartamentocasa' valueField='ph_apartamentocasa' onChange={getAptoList => setAptoList(getAptoList)}
+                    loading={getStatusLoadigAptosTorres} disabled={getStatusAptos}/>
                   </div>
                   
                   <div className="min-h-[100px] rounded-lg text-gray-500 bg-white shadow dark:text-gray-400 dark:bg-gray-800 sm:grid-cols-12 grid-cols-12">
                     <div className='pt-8 flex items-center w-full justify-center'>
-                      <div className="ms-3 text-xl font-normal"><h1>{getResidente.ph_propietario}</h1> 
-                        <p>Tel:{getResidente.ph_telefono}</p>
+                      <div className="ms-3 text-xl font-normal"><h1><b>{getResidente.ph_propietario}</b></h1> 
+                        <p>Tel: <b>{getResidente.ph_telefono}</b></p>
                         <p>Email: {getResidente.ph_mail}</p>
-                        <p>Torre: {getResidente.ph_torre} Apto: {getResidente.ph_apartamento} </p>
+                        <p>Torre: <b>{getResidente.ph_torre}</b> Apto: <b>{getResidente.ph_apartamento}</b> </p>
                       </div>
                     </div>
                   </div>
 
-                  <div className='m-6 grid gap-4 sm:grid-cols-2 grid-cols-2'>
+                  <div className='m-6 grid gap-4 sm:grid-cols-3 grid-cols-1'>
+                  <button className='focus:outline-none text-white bg-yellow-700 hover:bg-yellow-800 focus:ring-4 focus:ring-yellow-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-yellow-600 dark:hover:bg-yellow-700 dark:focus:ring-yellow-800' 
+                      onClick={(e) => nuevaBusqueda()} disabled={getbtnNuevaBusqueda}>Nueva Busqueda</button>
                     <button className='focus:outline-none text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800' 
                       onClick={(e) => getPropietarios()}>Buscar Propietario</button>
                     <button className='focus:outline-none text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800' 
@@ -652,22 +762,19 @@ function finalizarRegistro(){
                     <div className='pt-8 flex items-center w-full justify-center'>
                       <div className="ms-3 text-xl font-normal">
                         <h1>Registro de Ingreso</h1>
-                        <p>Placa: {getdataIngreso.pl_placa}</p>
-                        <p>Fecha y Hora: {getdataIngreso.vi_fecha_hora_ingreso}</p>
-                        <p>Slot: {getdataIngreso.pk_slot}</p>
+                        <p>Placa: <b>{getdataIngreso.pl_placa}</b></p>
+                        <p>Fecha y Hora: <b>{getdataIngreso.vi_fecha_hora_ingreso}</b></p>
+                        <p>Slot: <b>{getdataIngreso.pk_slot}</b></p>
                       </div>
                     </div>
                     <div className='m-6 grid gap-4 sm:grid-cols-2 grid-cols-2'> 
                       <p></p>
                       <button className='focus:outline-none text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800' 
-                        onClick={e => finalizarRegistro()}>Finalizar</button>
+                        onClick={e => finalizarRegistro()} disabled={getbtnFinalizar}>Finalizar</button>
                     </div>
                   </div>
 
                 </div>
-
-
-                
 
                 <div id='placaModal'>
                   <Modal
@@ -683,10 +790,13 @@ function finalizarRegistro(){
                        className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" style={{textTransform: 'uppercase'}}/>
                     </div>
                     <div className='m-6 grid gap-4 sm:grid-cols-2 grid-cols-2'> 
-                    <button className='focus:outline-none text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800' 
-                      onClick={(e) => nuevaPlacaVehiculo()}>Registrar Placa</button>
                       <button onClick={closeModal} className='focus:outline-none text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800'>
-                        Cerrar</button>
+                          Cerrar
+                      </button>
+                      <button className='focus:outline-none text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800' 
+                        onClick={(e) => nuevaPlacaVehiculo()}>
+                          Registrar Placa
+                      </button>
                     </div>
                   </Modal>
                 </div>
@@ -704,7 +814,8 @@ function finalizarRegistro(){
                       <InputMask mask="99999999999" onChange={(e) => getCedulaVisitante(e)} 
                         className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"/>
                       <p className='text-gray-500 bg-white dark:text-gray-400 dark:bg-gray-800'>Nombre Visitante</p>
-                      <input type='text' onChange={e => setNomVisita(e.target.value)} required className='mt-1 block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 placeholder-gray-400 shadow-sm focus:border-black focus:outline-none focus:ring-black sm:text-sm' style={{textTransform: 'uppercase'}}/>
+                      <input type='text' onChange={e => getNombreVisitante(e)} required className='mt-1 block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 placeholder-gray-400 shadow-sm focus:border-black focus:outline-none focus:ring-black sm:text-sm' style={{textTransform: 'uppercase'}}/>
+                      
                       <p className='text-gray-500 bg-white dark:text-gray-400 dark:bg-gray-800'>Teléfono Visitante</p>
                       <InputMask mask="999-999-9999" onChange={(e) => getTelVisitante(e)} 
                         className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" />
@@ -712,26 +823,55 @@ function finalizarRegistro(){
                       
                       
                     <div className='m-6 grid gap-4 sm:grid-cols-2 grid-cols-2'> 
-                    <button className='focus:outline-none text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800' 
-                      onClick={(e) => nuevoCedulaVisita()}>Registrar Visitante</button>
                       <button onClick={closeModalCedula} className='focus:outline-none text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800'>
-                        Cerrar</button>
+                          Cerrar
+                      </button>
+                      <button className='focus:outline-none text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800' 
+                        onClick={(e) => nuevoCedulaVisita()}>
+                          Registrar Visitante
+                      </button>
                     </div>
                   </Modal>
                 </div>
 
+                <div id='ticketImpresora'>
+                  <Modal
+                    isOpen={getImpresoraStatus}
+                    onRequestClose={closeModal}
+                    style={customStylesTicket}
+                    contentLabel="Imprimir Ticket"
+                  >
+                    <div ref={componentRef}>
+                      <p class="overflow-y-auto h-auto" >
+                      <img className='rounded-full h-32' src="/AparkApp.png" alt="AparkApp" />
+                        {getConjuntoInfo.cj_nombre} <br></br>
+                        {getConjuntoInfo.cj_direccion} <br></br>
+                        {getConjuntoInfo.cj_ciudad} <br></br>
+                        {getConjuntoInfo.cj_tel} <br></br>
+                        {'--------------------------------------------------'}<br></br>
+                        {getFechaHoraIngresoVisita}<br></br>
+                        {getTipoVehiculo+' Placa:'+getInfoPlacaVehiculo}<br></br>
+                        {getSlotVisita}<br></br>
+                        {getVisitanteData}<br></br>
+                        {getResidenteData+' '+getAptoResidente}<br></br>
+                        {'---------------------------------------------------'}<br></br>
+                        <div dangerouslySetInnerHTML={{ __html: getMensaje }}/>
+                        {'---------------------------------------------------'}<br></br>
+                        {'Lenin Soft - 304-522-5936'}
+                      </p>
+                    </div>
+                    <div className='m-6 grid gap-4 sm:grid-col-1 grid-cols-1'> 
+                      <button className='focus:outline-none text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800' 
+                        onClick={(e) => imprimirTicket()}>
+                          Imprimir Ticket
+                      </button>
+                    </div>
 
-
-
-           
-
-               
-                
+                  </Modal>
+                </div>
               </div>
             </div>
           </div>
-
-
           <div className='flex-auto'>
           </div>
         </div>

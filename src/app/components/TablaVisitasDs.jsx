@@ -6,12 +6,15 @@ import { useRouter } from 'next/navigation'
 import nProgress from 'nprogress'
 import 'nprogress/nprogress.css'
 
+
 function TablaVisitasDs() {
     const router = useRouter()
     const [tablaVisitasDs,  setTablaVisitaDs ] = useState(null)
     const data=[]
     const [records, setRecords] = useState([])
     const initialized = useRef(false)
+
+   
 
 
     function irPagos(e){
@@ -82,10 +85,11 @@ function TablaVisitasDs() {
     const columns = [
         {
             name: "Placa Vehículo",
+            grow: 2,
             selector: row => row.pl_placa
         },
         {
-            name: "Tipo Vehículo",
+            name: "Vehículo",
             selector: row => row.vh_tipo
         },
         {
@@ -99,22 +103,57 @@ function TablaVisitasDs() {
         },
         {
             name: "Visitante",
-            selector: row => row.vd_nombre
+            selector: row => row.vd_nombre,
+            wrap: true
         },
         {
             name: "Residente",
-            selector: row => row.ph_propietario
+            selector: row => row.ph_propietario,
+            wrap: true
         },
         {
             name: "Ir a Pago",
             cell:(row) => <button onClick={(e) => irPagos(e.target.value)} value={row.pl_placa} 
                             className='focus:outline-none text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-1.5 me-2 mb-2 dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800'
-                          >Pago</button>,
+                          >Salida</button>,
                 ignoreRowClick: true,
                 allowOverflow: true,
                 button: true,
         }
     ]
+
+    const paginationComponentOptions = {
+        rowsPerPageText: 'Filas por página',
+        rangeSeparatorText: 'de',
+        selectAllRowsItem: true,
+        selectAllRowsItemText: 'Todos',
+    };
+
+//-----------------------------------------------------------------------
+    function onFilter(e){
+        //console.log(e.target.value)
+
+        const placaFilter = e.target.value
+
+            if(placaFilter != ''){
+                const filteredItems = records.filter(
+                    item => item.pl_placa.toUpperCase().includes(placaFilter.toUpperCase()),
+                )
+                //console.log(filteredItems)
+                setRecords(filteredItems)
+            }else{  
+               getVisitantesDh()
+            }
+    }
+    const inputPlaca = useRef(null);
+
+    function borrar(){
+        inputPlaca.current.value=""
+        getVisitantesDh()
+    }
+
+//-----------------------------------------------------------------------
+
 
     useEffect(() => {
         if(!initialized.current) {
@@ -125,11 +164,30 @@ function TablaVisitasDs() {
         }
     },[])
 
+
   return (
     <div className="p-4 sm:ml-64">
+        <div className='min-w-80 grid gap-4 sm:grid-cols-2 grid-cols-1'> 
+            <input type="text"
+                ref={inputPlaca}
+                onChange={e => onFilter(e)} 
+                className='pl-2 appearance-none rounded-md border border-gray-300 px-3 py-2 placeholder-gray-400 shadow-sm focus:border-black focus:outline-none focus:ring-black sm:text-sm'
+                placeholder='Placa del Vehículo'
+                style={{textTransform: 'uppercase'}}
+                maxLength={3}
+            ></input>
+            <button onClick={ (e) => borrar()}
+                className='pl-2 focus:outline-none text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-1.5 me-2 mb-2 dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800' 
+            >X</button>
+        </div>
+       
         <DataTable 
             columns={columns}
             data={records}
+            pagination
+            paginationComponentOptions={paginationComponentOptions}
+            subHeader
+            
         />
     </div>
   )

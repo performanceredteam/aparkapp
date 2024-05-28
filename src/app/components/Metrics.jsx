@@ -1,12 +1,14 @@
 "use client"
 
 import React, { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
 
 function Metrics() {
+    const router = useRouter()
 
     const [metrics,  setMetrics ] = useState(null)
     const [ metricsParq, setMetricsParq] = useState(null)
-
+    
     const getMetricsDh = async () => {
         try{
             if(typeof window !== 'undefined'){
@@ -43,6 +45,11 @@ function Metrics() {
         }catch(error){
             console.log(error)
         }
+    }
+
+
+    function nuevoIngreso(){
+        router.push('/registro')
     }
 
     useEffect(() => {
@@ -83,6 +90,8 @@ function Metrics() {
                 <div className="ms-3 text-xl font-normal">{metricsParq && <h1>Parqueadero Motos: {JSON.stringify(metricsParq.ParquedaroMotosDisponibles)}  </h1>}</div>
             </div>
         </div>
+
+        <button onClick={(e) => nuevoIngreso()} className='focus:outline-none text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800'>Nuevo Ingreso</button>
    </div>
   )
 }
