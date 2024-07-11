@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import NavBar from '../components/NavBar'
 import Metrics from '../components/Metrics'
 import TablaVisitasDs from '../components/TablaVisitasDs'
+import TablaPensionDs from '../components/TablaPensionDs'
 import nProgress from 'nprogress'
 import 'nprogress/nprogress.css'
 
@@ -30,7 +31,7 @@ function Dashboard() {
       })
 
       const tipoPago = await response.json()
-      console.log(tipoPago)
+      //console.log(tipoPago)
       window.sessionStorage.setItem('cn_config', tipoPago.Configuracion[0].cn_config)
 
 
@@ -44,6 +45,8 @@ function Dashboard() {
     nProgress.done()
     return () => {
       getTipoPago()
+      window.sessionStorage.removeItem('fechaActual')
+      window.sessionStorage.removeItem('idCaja')
       nProgress.start()
     }
   })
@@ -57,8 +60,8 @@ function Dashboard() {
           <div className='container mx-auto'>
             <div className='flex-auto'>
               <Metrics />
-              
               <TablaVisitasDs />
+              <TablaPensionDs />
             </div>
           </div>
           <div className='flex-auto'>

@@ -53,7 +53,7 @@ function RepIngresosVisita() {
             try{
                 nProgress.start()
 
-                const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/bobot-api/reporteingresos-rep?fechaini=${startDate}&fechafin=${endDate}`, {
+                const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/bobot-api/reporte-pension/?fechaini=${startDate}&fechafin=${endDate}`, {
                     method: 'GET',
                     headers:{
                     "Authorization" : `Token ${token}`,
@@ -68,27 +68,48 @@ function RepIngresosVisita() {
                                             
                     // if (tablaVisitasDs) setTablaVisitaDs(tablaVisitasDs)
                     setTablaVisitaReporte(tablaVisitasData)
-                    console.log(tablaVisitasData.Generando)
+                    console.log(tablaVisitasData.Reporte)
                     //console.log(tablaVisitasDs.VehiculosParqueaderoDh)
-                    for(let i=0; i < tablaVisitasData.Generando.length; i++ ){
-                        const vi_fecha_hora_ingreso = '"vi_fecha_hora_ingreso":"'+tablaVisitasData.Generando[i].vi_fecha_hora_ingreso.replace("T"," ")+'",'
-                        const vi_fecha_hora_salida = '"vi_fecha_hora_salida":"'+tablaVisitasData.Generando[i].vi_fecha_hora_salida.replace("T"," ")+'",'
-                        const pl_placa = '"pl_placa":"'+tablaVisitasData.Generando[i].pl_placa+'",'
-                        const pk_slot = '"pk_slot":"'+tablaVisitasData.Generando[i].pk_slot+'",'
-                        const vd_cedula = '"vd_cedula":"'+tablaVisitasData.Generando[i].vd_cedula+'",'
-                        const vd_nombre = '"vd_nombre":"'+tablaVisitasData.Generando[i].vd_nombre+'",'
-                        const ph_propietario = '"ph_propietario":"'+tablaVisitasData.Generando[i].ph_propietario+'",'
-                        const ph_apartamento = '"ph_apartamento":"'+tablaVisitasData.Generando[i].ph_apartamento+'",'
-                        const ph_torre = '"ph_torre":"'+tablaVisitasData.Generando[i].ph_torre+'",'
-                        const fa_tiempo = '"fa_tiempo":"'+tablaVisitasData.Generando[i].fa_tiempo+'",'
-                        const fa_monto = '"fa_monto":"'+tablaVisitasData.Generando[i].fa_monto+'"'
+                    for(let i=0; i < tablaVisitasData.Reporte.length; i++ ){
+                        const pe_placa = '"pe_placa":"'+tablaVisitasData.Reporte[i].pe_placa+'",'
+                        const pe_nombre = '"pe_nombre":"'+tablaVisitasData.Reporte[i].pe_nombre+'",'
+                        const pe_cedula = '"pe_cedula":"'+tablaVisitasData.Reporte[i].pe_cedula+'",'
+                        const pe_fecha_ini = '"pe_fecha_ini":"'+tablaVisitasData.Reporte[i].pe_fecha_ini.replace("T00:00:00"," ")+'",'
+                        const pe_fecha_fin = '"pe_fecha_fin":"'+tablaVisitasData.Reporte[i].pe_fecha_fin.replace("T"," ")+'",'
+                        const pe_monto = '"pe_monto":"'+tablaVisitasData.Reporte[i].pe_monto+'",'
+                        const pe_slot = '"pe_slot":"'+tablaVisitasData.Reporte[i].pe_slot+'",'
+                        const pe_tipo_vehiculo_set = tablaVisitasData.Reporte[i].pe_tipo_vehiculo
+                            let pe_tipo_vehiculo_get =""
+                            if(pe_tipo_vehiculo_set == 1){
+                                pe_tipo_vehiculo_get = '"pe_tipo_vehiculo":"Carro",'
+                            }else if(pe_tipo_vehiculo_set == 2){
+                                pe_tipo_vehiculo_get = '"pe_tipo_vehiculo":"Moto",'
+                            }
+                        const pe_status_set = tablaVisitasData.Reporte[i].pe_status
+                            let pe_status_get=""
+                            if(pe_status_set == true){
+                                pe_status_get = '"pe_status":"Activo"'
+                            }else if(pe_status_set == false){
+                                pe_status_get = '"pe_status":"Inactivo"'
+                            }
+                        
+                        
 
-                        const dataArray = JSON.parse('{'+vi_fecha_hora_ingreso+vi_fecha_hora_salida+pl_placa+pk_slot+vd_cedula+vd_nombre+ph_propietario+ph_apartamento+
-                        ph_torre+fa_tiempo+fa_monto+'}')
+                        const dataArray = JSON.parse('{'+
+                            pe_placa+
+                            pe_nombre+
+                            pe_cedula+
+                            pe_fecha_ini+
+                            pe_fecha_fin+
+                            pe_monto+
+                            pe_slot+
+                            pe_tipo_vehiculo_get+
+                            pe_status_get
+                            +'}')
                         data.push(dataArray)
                         
                     }
-                    //console.log(data)
+                    console.log(data)
                     setRecords(data)
                     nProgress.done()                          
                         
@@ -101,50 +122,42 @@ function RepIngresosVisita() {
 
       const columns = [
         {
-            name: "Fecha Ingreso",
-            selector: row => row.vi_fecha_hora_ingreso,
+            name: "Placa",
+            selector: row => row.pe_placa,
             wrap: true
+        },
+        {
+            name: "Nombre",
+            selector: row => row.pe_nombre,
+            wrap: true
+        },
+        {
+            name: "Cedula",
+            selector: row => row.pe_cedula
+        },
+        {
+            name: "Fecha Ingreso",
+            selector: row => row.pe_fecha_ini
         },
         {
             name: "Fecha Salida",
-            selector: row => row.vi_fecha_hora_salida,
-            wrap: true
-        },
-        {
-            name: "Placa",
-            selector: row => row.pl_placa
-        },
-        {
-            name: "Slot",
-            selector: row => row.pk_slot
-        },
-        {
-            name: "Cedula Visitante",
-            selector: row => row.vd_cedula
-        },
-        {
-            name: "Nombre Visitante",
-            selector: row => row.vd_nombre
-        },
-        {
-            name: "Propietario",
-            selector: row => row.ph_propietario
-        },
-        {
-            name: "Apartamento",
-            selector: row => row.ph_apartamento
-        },
-        {
-            name: "Torre",
-            selector: row => row.ph_torre
-        },
-        {
-            name: "Tiempo",
-            selector: row => row.fa_tiempo
+            selector: row => row.pe_fecha_fin
         },
         {
             name: "Monto",
-            selector: row => toMoney(row.fa_monto)
+            selector: row => toMoney(row.pe_monto)
+        },
+        {
+            name: "Slot",
+            selector: row => row.pe_slot
+        },
+        {
+            name: "Vehículo",
+            selector: row => row.pe_tipo_vehiculo
+        },
+        {
+            name: "Estado",
+            selector: row => row.pe_status
         }
     ]
 
@@ -206,7 +219,7 @@ function RepIngresosVisita() {
                     </svg>
                         <span class="sr-only">Info</span>
                         <div>
-                            <span class="font-medium">Reporte de Registro de Visitantes</span>
+                            <span class="font-medium">Reporte de Registro de Pensión</span>
                         </div>
                 </div>
                 <div className="items-center w-full space-y-4 m-6 sm:flex sm:space-x-8 sm:space-y-0 rtl:space-x-reverse">

@@ -14,9 +14,6 @@ function TablaVisitasDs() {
     const [records, setRecords] = useState([])
     const initialized = useRef(false)
 
-   
-
-
     function irPagos(e){
         router.push(`/pago/${e}`)
     }
@@ -24,7 +21,6 @@ function TablaVisitasDs() {
     async function getVisitantesDh(){
     //const getVisitantesDh = async () => {
         try{
-            
             if(typeof window !== 'undefined'){
                 const token = window.sessionStorage.getItem('token')
                 if(!token){
@@ -69,7 +65,6 @@ function TablaVisitasDs() {
                             //const linkPago = '"link":"Pago"'
                             const dataArray = JSON.parse('{'+pl_placa+vh_tipo+pk_slot+vi_fecha_hora_ingreso+vd_nombre+ph_propietario+id_registro+'}')
                             data.push(dataArray)
-                            
                         }
                         //console.log(data)
                         setRecords(data)                          
@@ -167,7 +162,7 @@ function TablaVisitasDs() {
 
   return (
     <div className="p-4 sm:ml-64">
-        <div className='min-w-80 grid gap-4 sm:grid-cols-2 grid-cols-1'> 
+       
             <input type="text"
                 ref={inputPlaca}
                 onChange={e => onFilter(e)} 
@@ -177,11 +172,12 @@ function TablaVisitasDs() {
                 maxLength={3}
             ></input>
             <button onClick={ (e) => borrar()}
-                className='pl-2 focus:outline-none text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-1.5 me-2 mb-2 dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800' 
+                className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800"
             >X</button>
-        </div>
+        
        
         <DataTable 
+            title="Visitantes"
             columns={columns}
             data={records}
             pagination

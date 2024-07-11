@@ -188,7 +188,7 @@ function Registro() {
     const textResidente = dataResidentes.Propietario 
     //Set idPropietario
     window.sessionStorage.setItem('idPropietario', dataResidentes.Propietario.id);
-    console.log(dataResidentes.Propietario)
+    //console.log(dataResidentes.Propietario)
     setResidenteData('Residente:'+dataResidentes.Propietario.ph_propietario)
     setAptoResidente('Apto:'+dataResidentes.Propietario.ph_torre+'-'+dataResidentes.Propietario.ph_apartamento)
     setbtnSiguienteResidente(false)
@@ -253,6 +253,7 @@ function Registro() {
 
     },
   };
+  
   const customStylesTicket = {
     content: {
     top: '50%',
@@ -272,8 +273,6 @@ function Registro() {
   function closeModalCedula() {
     setIsOpenCedula(false);
   }
-
-
 
   function getPlacaVheiculo(e){
     const placaVehiculo = e.target.value
@@ -486,8 +485,6 @@ function Registro() {
     document.getElementById("step-4").style.visibility="visible"
 
     ingresoFechaHora()
-
-
   }
 
   const ingresoFechaHora = async () => {
