@@ -448,7 +448,8 @@ function Registro() {
     if(dataCedulaVisitante.Message == "Success"){
       window.sessionStorage.setItem('vd_cedula', dataCedulaVisitante.Visitante.vd_cedula);
       setInfoCedulaVisitante(dataCedulaVisitante.Visitante.vd_nombre)
-      setVisitanteData('Visitante:'+dataCedulaVisitante.Visitante.vd_nombre+' '+'Cedula:'+dataCedulaVisitante.Visitante.vd_cedula)
+      let OfsCedula =dataCedulaVisitante.Visitante.vd_cedula
+      setVisitanteData('Visitante:'+dataCedulaVisitante.Visitante.vd_nombre+' '+'Cedula:'+OfsCedula.toString().substring(OfsCedula.length,5)+'****')
       setbtnSiguienteVisitante(false)
       closeModalCedula()
     }else{

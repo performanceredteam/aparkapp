@@ -8,6 +8,7 @@ import { useReactToPrint } from "react-to-print";
 import nProgress from 'nprogress'
 import Modal from 'react-modal';
 import 'nprogress/nprogress.css'
+import { CurrencyInput } from 'react-currency-mask';
 
 const delay = ms => new Promise(
     resolve => setTimeout(resolve, ms)
@@ -36,6 +37,7 @@ function IdRegistroPago() {
     const [getTipoCobro, setTipoCobro] = useState([])
 
     const [getImpresoraStatus, setImpresoraStatus] = useState(false)
+    const [getreImpresoraStatus, setreImpresoraStatus] = useState(false)
     const [getConjuntoInfo, setConjuntoInfo] = useState([])
     const componentRef = useRef();
 
@@ -47,6 +49,16 @@ function IdRegistroPago() {
     const [getOfsCedula, setOfsCedula] = useState([])
 
     let statusImp = false
+
+    const toMoney = value => {
+        const money = Number(value);
+    
+        if (isNaN(money)) {
+          return value;
+        }
+    
+        return new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(money)
+    }
 
     //Modal.setAppElement('#ticketImpresora');
     const customStyles = {
@@ -61,6 +73,18 @@ function IdRegistroPago() {
         },
     };
 
+    const customStylesTicket = {
+        content: {
+        top: '50%',
+        left: '63%',
+        right: 'auto',
+        bottom: '-30%',
+        marginRight: '-50%',
+        transform: 'translate(-50%, -50%)',
+    
+        },
+    };
+
     const handlePrint = useReactToPrint({
         content: () => componentRef.current,
       }
@@ -70,8 +94,36 @@ function IdRegistroPago() {
         handlePrint()
         setImpresoraStatus(false)
         router.push('/dashboard')
-      }
+    }
+
+    function reImprimirTicket(){
+        
+        dataConjuntoTicket()
+        setreImpresoraStatus(true)
+    }
+
+    function reImprimirTicketf(){
+        handlePrint()
+        setreImpresoraStatus(false)
+    }
     
+
+    //Data Conjunto
+    const dataConjuntoTicket = async () => {
+        const token = window.sessionStorage.getItem('token') 
+        const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/bobot-api/conjunto/`, {
+            method: 'GET',
+            headers:{
+            "Authorization" : `Token ${token}`,
+            }
+        }) 
+
+        const dataConjunto = await response.json()
+        const dataConjuntoInfo = dataConjunto.Conjunto[0]
+
+            setMensaje(dataConjuntoInfo.cj_msn.match(/.{1,35}/g).join("<br />"))   
+            setConjuntoInfo(dataConjuntoInfo)
+    }
 
     //Set Impresora
     const statusImpresora = async () => {
@@ -273,7 +325,16 @@ useEffect(() => {
                                                 <p>Residente: {getdataInfoResidente.ph_propietario}</p>
                                                 <p>Apartamento: {getdataInfoResidente.ph_torre} - {getdataInfoResidente.ph_apartamento}</p>
                                                 <p>Tel: {getdataInfoResidente.ph_telefono}</p>
+
+                                                <div className='m-6 grid gap-4 sm:grid-cols-1 grid-cols-1'>
+                                                    <button
+                                                        className='focus:outline-none text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800'
+                                                        onClick={(e) => reImprimirTicket()}>
+                                                        Re-Imprimir Ticket
+                                                    </button>
+                                                </div>
                                             </div>
+                                                
                                         </div>
                                     </div>
                                         
@@ -283,7 +344,7 @@ useEffect(() => {
                                                 <h1>Fecha y Hora: <b>{getFechaHoraSalida}</b></h1>
                                                 <p>Tiempo: <b>{getdataCalculoSalida.DuracionHoraFrac}</b> {getTipoCobro}</p>
                                                 <hr />
-                                                <p>Monto: <b>${getdataCalculoSalida.MontoPagar}</b></p>
+                                                <p>Monto: <b>{toMoney(getdataCalculoSalida.MontoPagar)}</b></p>
                                                 <p>Tiempo Gratis: {getdataCalculoSalida.HoraGratis} {getTipoCobro}</p>
                                                 <hr />
                                                 <div className='m-6 grid gap-4 sm:grid-cols-1 grid-cols-1'>
@@ -333,10 +394,46 @@ useEffect(() => {
                             </p>
                             </div>
                             <div className='m-6 grid gap-4 sm:grid-col-1 grid-cols-1'> 
-                            <button className='focus:outline-none text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800' 
-                                onClick={(e) => imprimirTicket()}>
-                                Imprimir Ticket
-                            </button>
+                                <button className='focus:outline-none text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800' 
+                                    onClick={(e) => imprimirTicket()}>
+                                    Imprimir Ticket
+                                </button>
+                            </div>
+
+                        </Modal>
+                    </div>
+
+                    <div id='ticketReImpresora'>
+                        <Modal
+                            isOpen={getreImpresoraStatus}
+                            style={customStylesTicket}
+                            contentLabel="Re-Imprimir Ticket"
+                        >
+                            <div ref={componentRef}>
+                            <p class="overflow-y-auto h-auto" >
+                            <img className='rounded-full h-32' src="/AparkApp.png" alt="AparkApp" />
+                                {getConjuntoInfo.cj_nombre} <br></br>
+                                {getConjuntoInfo.cj_direccion} <br></br>
+                                {getConjuntoInfo.cj_ciudad} <br></br>
+                                {getConjuntoInfo.cj_tel} <br></br>
+                                {'--------------------------------------------------'}<br></br>
+                                {getFechaHoraIngreso}<br></br>
+                                {'Ingreso:'+getTipoVehiculo+' Placa:'+getdataPlaca.pl_placa}<br></br>
+                                {'Slot:'+getdataInfoIngreso.pk_slot}<br></br>
+                                {'Visitante:'+getdataInfoVisitante.vd_nombre}<br></br>
+                                {'Cedula:'+getOfsCedula+'***'}<br></br>
+                                {'Residente:'+getdataInfoResidente.ph_propietario+' Apto:'+getdataInfoResidente.ph_torre+'-'+getdataInfoResidente.ph_apartamento}<br></br>
+                                {'---------------------------------------------------'}<br></br>
+                                <div dangerouslySetInnerHTML={{ __html: getMensaje }}/>
+                                {'---------------------------------------------------'}<br></br>
+                                {'Lenin Soft - 304-522-5936'}
+                            </p>
+                            </div>
+                            <div className='m-6 grid gap-4 sm:grid-col-1 grid-cols-1'> 
+                                <button className='focus:outline-none text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800' 
+                                    onClick={(e) => reImprimirTicketf()}>
+                                    Re-Imprimir Ticket
+                                </button>
                             </div>
 
                         </Modal>
