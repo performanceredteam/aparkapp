@@ -206,28 +206,29 @@ function IdRegistroPago() {
     }
 
     const calculoTiempo = async () => {
-        const token = window.sessionStorage.getItem('token')
-        const horaSalida = window.sessionStorage.getItem('h_salida')
-        const tipoPago = window.sessionStorage.getItem('cn_config')
+        nProgress.start()
+            const token = window.sessionStorage.getItem('token')
+            const horaSalida = window.sessionStorage.getItem('h_salida')
+            const tipoPago = window.sessionStorage.getItem('cn_config')
 
-        const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/bobot-api/tiempo-calculo/?placa=${placaVehiculo}&hora=${horaSalida}&cobro=${tipoPago}`, {
-          method: 'GET',
-          headers:{
-            "Authorization" : `Token ${token}`,
-          }
-        })
-    
-        const dataCalculoSalida = await response.json()
-        //console.log(dataCalculoSalida)
-        if(tipoPago == 1){
-            setTipoCobro('Min.')
-        }else if(tipoPago == 2){
-            setTipoCobro('Hrs.')
-        }
-        window.sessionStorage.setItem('monto', dataCalculoSalida.MontoPagar)
-        window.sessionStorage.setItem('tiempo', dataCalculoSalida.DuracionHoraFrac)
-        setdataCalculoSalida(dataCalculoSalida)
+            const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/bobot-api/tiempo-calculo/?placa=${placaVehiculo}&hora=${horaSalida}&cobro=${tipoPago}`, {
+            method: 'GET',
+            headers:{
+                "Authorization" : `Token ${token}`,
+            }
+            })
         
+            const dataCalculoSalida = await response.json()
+            //console.log(dataCalculoSalida)
+            if(tipoPago == 1){
+                setTipoCobro('Min.')
+            }else if(tipoPago == 2){
+                setTipoCobro('Hrs.')
+            }
+            window.sessionStorage.setItem('monto', dataCalculoSalida.MontoPagar)
+            window.sessionStorage.setItem('tiempo', dataCalculoSalida.DuracionHoraFrac)
+            setdataCalculoSalida(dataCalculoSalida)
+        nProgress.done()
     }
     //function realizandoPago(){
     const realizandoPago = async () => {

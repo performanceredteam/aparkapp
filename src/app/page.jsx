@@ -5,10 +5,6 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 
 function Home() {
-  //const sesionExist = window.sessionStorage.getItem('token')
-  //if(sesionExist){
-  //  window.sessionStorage.removeItem('token')
-  //}
   const router = useRouter()
 
   const [usuario, setUsuario] = useState("")
