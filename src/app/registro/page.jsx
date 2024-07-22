@@ -10,6 +10,7 @@ import InputMask from "react-input-mask";
 import Modal from 'react-modal';
 import nProgress from 'nprogress'
 import 'nprogress/nprogress.css'
+import Log from '../components/Log'
 
 function Registro() {
   const router = useRouter()
@@ -67,7 +68,7 @@ function Registro() {
   const [getVisitanteData, setVisitanteData] = useState([])
   const [getAptoResidente, setAptoResidente] = useState([])
   const [getMensaje, setMensaje] = useState([])
-  
+  const [getTicketId, setTicketId] = useState([])
   
 
   if(typeof window !== 'undefined'){
@@ -75,6 +76,24 @@ function Registro() {
     if(!token){
       router.push('/')
     }
+  }
+
+  const getLastTicket = async e =>{
+      const token = window.sessionStorage.getItem('token')
+      const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/bobot-api/ticketid/`, {
+          method: 'GET',
+          headers:{
+              "Authorization" : `Token ${token}`,
+          }
+      })
+
+      const data = await res.json()
+      console.log(data.TicketId.tk_id)
+      
+      const newTicketId = data.TicketId.tk_id+1 
+      console.log(newTicketId)
+      setTicketId(newTicketId)
+      
   }
 
   //Set Impresora
@@ -511,10 +530,11 @@ function Registro() {
       const pl_placa = window.sessionStorage.getItem('pl_placa')
       const vh_tipo = window.sessionStorage.getItem('vh_tipo')
       const pk_slot = window.sessionStorage.getItem('pk_slot')
+      const ticketid = getTicketId
 
       const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/bobot-api/vehiculovisita-ingreso/`, {
         method: 'POST',
-        body: JSON.stringify({'vi_fecha_hora_ingreso': vi_fecha_hora_ingreso, 'pl_placa': pl_placa, 'vh_tipo': vh_tipo, 'pk_slot': pk_slot, 'pk_status' : false}),
+        body: JSON.stringify({'vi_fecha_hora_ingreso': vi_fecha_hora_ingreso, 'pl_placa': pl_placa, 'vh_tipo': vh_tipo, 'pk_slot': pk_slot, 'pk_status' : false, 'in_tk_id' : ticketid}),
         headers:{
           "Content-Type":"application/json",
           "Authorization" : `Token ${token}`,
@@ -523,6 +543,21 @@ function Registro() {
 
       const dataIngreso = await response.json()
       //console.log(dataIngreso.Ingreso)
+
+      const responseTikect = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/bobot-api/ticketid/`, {
+          method: 'POST',
+          body: JSON.stringify(
+              {    
+                  "tk_id":ticketid
+              }
+          ),
+          headers:{
+              "Content-Type":"application/json",
+              "Authorization" : `Token ${token}`,
+          }
+      })
+      const responseTikectInfo = await responseTikect.json()
+      console.log(responseTikectInfo.Message)
 
       //Enviar email
       await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/bobot-api/vehiculovisita-info/?placa=${pl_placa}&status=1`, {
@@ -550,6 +585,9 @@ function Registro() {
 
 //Finalizar
 function finalizarRegistro(){
+
+  Log(window.sessionStorage.getItem('username'),'Registro Ingreso de Vehiculo Visitante Placa:'+window.sessionStorage.getItem('pl_placa'),window.sessionStorage.getItem('token'))
+
   window.sessionStorage.removeItem('idPropietario')
   window.sessionStorage.removeItem('vh_tipo')
   window.sessionStorage.removeItem('pl_placa')
@@ -569,7 +607,7 @@ function finalizarRegistro(){
     if(!initialized.current) {
       nProgress.start()
         initialized.current = true
-        
+          getLastTicket()
           getAptos()
           
           
@@ -855,6 +893,8 @@ function finalizarRegistro(){
                         {'---------------------------------------------------'}<br></br>
                         <div dangerouslySetInnerHTML={{ __html: getMensaje }}/>
                         {'---------------------------------------------------'}<br></br>
+                        {'Ticket #'}{getTicketId}<br></br>
+                        {'Ticket No Fiscal'} <br></br>
                         {'Lenin Soft - 304-522-5936'}
                       </p>
                     </div>

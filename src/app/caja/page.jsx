@@ -9,6 +9,7 @@ import 'nprogress/nprogress.css'
 import Modal from 'react-modal';
 import { CurrencyInput } from 'react-currency-mask';
 import { useReactToPrint } from "react-to-print";
+import Log from '../components/Log'
 
 function Caja() {
     const router = useRouter()
@@ -170,6 +171,7 @@ function Caja() {
                 setFechaApertura('el '+ responseInicarCaja.Caja.cj_fecha_apertura.substring(0,10) + ' por el Usuario: ')
                 setUsuarioCaja(responseInicarCaja.Caja.cj_usuario)
                 setBaseCaja(responseInicarCaja.Caja.cj_base_caja)
+                Log(window.sessionStorage.getItem('username'),'Apertura de Caja',window.sessionStorage.getItem('token'))
                 setStatusCaja('Iniciada')
             }
         }else{
@@ -204,6 +206,7 @@ function Caja() {
         //console.log(responseCerrarCaja.Message)
         //console.log(responseRecaudo) $ {getRecaudo.Recaudo}
         if(responseCerrarCaja.Message == 'Success'){
+            Log(window.sessionStorage.getItem('username'),'Cierre de Caja',window.sessionStorage.getItem('token'))
             router.push('/dashboard')
         }else{
             alert('Error en Cierre de Caja...')
@@ -230,6 +233,7 @@ function Caja() {
 
         const responseCorteCaja = await response.json()
         if(responseCorteCaja.Message == 'Success'){
+            Log(window.sessionStorage.getItem('username'),'Corte de Caja',window.sessionStorage.getItem('token'))
             handlePrint()
             setBtnCerrarCaja(false)
             setCorteCajaIsOpen(false)

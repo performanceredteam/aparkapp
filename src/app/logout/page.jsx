@@ -2,6 +2,7 @@
 
 import React from 'react'
 import { useRouter } from 'next/navigation'
+import Log from '../components/Log'
 
 function LogOut() {
   const router = useRouter()
@@ -11,6 +12,7 @@ function LogOut() {
     if(!token){
       router.push('/')
     }else{
+      Log(window.sessionStorage.getItem('username'),'Cierre Session',window.sessionStorage.getItem('token'))
       window.sessionStorage.clear()
       router.push('/')
     }

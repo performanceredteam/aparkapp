@@ -10,8 +10,6 @@ import "react-datepicker/dist/react-datepicker.css";
 import es from 'date-fns/locale/es';
 registerLocale('es', es);
 import { format } from "date-fns";
-import { root } from 'postcss';
-
 
 function RepIngresosVisita() {
     const data=[]

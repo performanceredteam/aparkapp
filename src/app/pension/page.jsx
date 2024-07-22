@@ -13,9 +13,9 @@ import { format } from "date-fns";
 import { useRouter } from 'next/navigation'
 import Modal from 'react-modal';
 import { useReactToPrint } from "react-to-print";
+import Log from '../components/Log'
 
 function Pension() {
-
     const customStyles = {
         content: {
           top: '50%',
@@ -64,7 +64,26 @@ function Pension() {
     const [getCedulaTk, setCedulaTk] = useState([])
     const [getFechaIniTk, setFechaIniTk] = useState([])
     const [getFechaFinTk, setFechaFinTk] = useState([])
+    const [getTicketId, setTicketId] = useState([])
 
+
+    const getLastTicket = async e =>{
+        const token = window.sessionStorage.getItem('token')
+        const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/bobot-api/ticketid/`, {
+            method: 'GET',
+            headers:{
+                "Authorization" : `Token ${token}`,
+            }
+        })
+
+        const data = await res.json()
+        console.log(data.TicketId.tk_id)
+        
+        const newTicketId = data.TicketId.tk_id+1 
+        console.log(newTicketId)
+        setTicketId(newTicketId)
+        
+    }
 
     function handleOptionChange(e){
         //console.log(e.target.value)
@@ -74,6 +93,7 @@ function Pension() {
         setStatusFechaIni(false)
         setStatusFechaFin(false)
         setStatusBtnGuardar(false)
+        
 
         if(e.target.value == 1){
             setTipoCarro(true)
@@ -82,6 +102,7 @@ function Pension() {
             setTipoPlacaVehiculo(maskTipoVehiculo)
             setTipoVehiculo(1)
             SlotParqueadero("Carro")
+            getLastTicket()
             setVehiculo("Carro")
         }else if(e.target.value == 2){
             setTipoCarro(false)
@@ -90,6 +111,7 @@ function Pension() {
             setTipoPlacaVehiculo(maskTipoVehiculo)
             setTipoVehiculo(2)
             SlotParqueadero("Moto")
+            getLastTicket()
             setVehiculo("Moto")
         }
     }
@@ -180,6 +202,7 @@ function Pension() {
         const monto = getMonto
         const slot = getParking
         const vehiculo = getTipoVehiculo
+        const ticketid = getTicketId
 
         if(placa != "" && nombre != "" && cedula != ""){
             nProgress.start()
@@ -190,7 +213,8 @@ function Pension() {
                 console.log(fechafin)
                 console.log(monto)
                 console.log(slot)
-                console.log(vehiculo)*/
+                console.log(vehiculo)
+                console.log(ticketid)*/
 
                 setNombreTk(nombre.toUpperCase())
                 setPlacaTk(placa.toUpperCase())
@@ -212,7 +236,8 @@ function Pension() {
                             "pe_fecha_fin": fechafin,
                             "pe_monto": monto,
                             "pe_slot": slot,
-                            "pe_tipo_vehiculo": vehiculo
+                            "pe_tipo_vehiculo": vehiculo,
+                            "pe_tk_id": ticketid
                         }
                     ),
                     headers:{
@@ -222,7 +247,7 @@ function Pension() {
                 })
 
                 const dataResponse = await response.json()
-                //console.log(dataResponse)
+                console.log(dataResponse)
     
                 if(dataResponse.Message == 'Success'){
                     const token = window.sessionStorage.getItem('token')
@@ -242,7 +267,23 @@ function Pension() {
 
                     const reponseUpPark = await response.json()
                         if(reponseUpPark.Message == 'Updated'){
-                            
+
+                            const token = window.sessionStorage.getItem('token')
+                            const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/bobot-api/ticketid/`, {
+                                method: 'POST',
+                                body: JSON.stringify(
+                                    {    
+                                        "tk_id":ticketid
+                                    }
+                                ),
+                                headers:{
+                                    "Content-Type":"application/json",
+                                    "Authorization" : `Token ${token}`,
+                                }
+                            })
+                            const responseTiket = await response.json()
+                            console.log(responseTiket.Message)
+                            Log(window.sessionStorage.getItem('username'),'Registro Ingreso de Vehiculo Pension Placa:'+placa.toUpperCase(),window.sessionStorage.getItem('token'))
                         }
                 }
             nProgress.done()
@@ -299,7 +340,7 @@ function Pension() {
             <div className="p-4 sm:ml-64">
                 
                     <div className="mt-10 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
-                        <div className="sm:col-span-4">
+                        <div className="sm:col-span-4"> 
                             <div class="flex items-center mb-4 gap-x-2 px-24">
                                 <input type="radio" value="1" id="radio1"
                                  checked={getTipoCarro}
@@ -444,6 +485,8 @@ function Pension() {
                                 {'---------------------------------------------------'}<br></br>
                                 <div dangerouslySetInnerHTML={{ __html: getMensaje }}/>
                                 {'---------------------------------------------------'}<br></br>
+                                {'Ticket #'}{getTicketId}<br></br>
+                                {'Ticket No Fiscal'} <br></br>
                                 {'Lenin Soft - 304-522-5936'}
                             </p>
                         </div>

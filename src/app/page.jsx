@@ -3,6 +3,7 @@
 import React from 'react'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Log from '../app/components/Log'
 
 function Home() {
   const router = useRouter()
@@ -29,6 +30,7 @@ function Home() {
       window.sessionStorage.setItem('username', data.user);
       window.sessionStorage.setItem('name', data.name);
       window.sessionStorage.setItem('last', data.last);
+      Log(usuario,'Inicio de Sesion',data.token)
       router.push('/dashboard')
     }else{
       alert("Error valide Usuario/Password")

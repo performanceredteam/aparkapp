@@ -9,6 +9,7 @@ import nProgress from 'nprogress'
 import Modal from 'react-modal';
 import 'nprogress/nprogress.css'
 import { CurrencyInput } from 'react-currency-mask';
+import Log from '../../components/Log'
 
 const delay = ms => new Promise(
     resolve => setTimeout(resolve, ms)
@@ -47,8 +48,10 @@ function IdRegistroPago() {
 
     const [getMensaje, setMensaje] = useState([])
     const [getOfsCedula, setOfsCedula] = useState([])
+    const [getTicketId, setTicketId] = useState([])
 
     let statusImp = false
+
 
     const toMoney = value => {
         const money = Number(value);
@@ -59,6 +62,7 @@ function IdRegistroPago() {
     
         return new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(money)
     }
+
 
     //Modal.setAppElement('#ticketImpresora');
     const customStyles = {
@@ -177,6 +181,7 @@ function IdRegistroPago() {
         setdataInfoResidente(dataResumen.PropietarioVisitado)   
 
         setFechaHoraIngreso(dataResumen.InfoIngreso.vi_fecha_hora_ingreso.replace('T',' '))
+        setTicketId(dataResumen.InfoIngreso.in_tk_id)
         let OfsCedula = dataResumen.VisitanteInfo.vd_cedula
         setOfsCedula(OfsCedula.toString().substring(OfsCedula.length,5))
         //console.log(dataResumen.InfoIngreso.vh_tipo)
@@ -272,6 +277,13 @@ function IdRegistroPago() {
             //console.log(dataResponse)
 
             if(dataResponse.Message == 'Success'){
+                Log(window.sessionStorage.getItem('username'),'Registro Salida de Vehiculo Visitante Placa:'+pl_placa+',Monto:'+fa_monto+
+                        ',Tiempo:'+fa_tiempo+',Salida'+vi_fecha_hora_salida+',Propietario Id'+ph_propietario,
+                        window.sessionStorage.getItem('token')
+                    )
+                
+                await delay(2000)
+                
                 window.sessionStorage.removeItem('monto')
                 window.sessionStorage.removeItem('tiempo')
                 window.sessionStorage.removeItem('h_salida')
@@ -387,10 +399,12 @@ useEffect(() => {
                                 {'Tiempo Libre:'+getdataCalculoSalida.HoraGratis+' '+getTipoCobro}<br></br>
                                 {'---------------------------------------------------'}<br></br>
                                 {'Tiempo:'+getdataCalculoSalida.DuracionHoraFrac+' '+getTipoCobro}<br></br>
-                                {'Monto:$'+getdataCalculoSalida.MontoPagar}<br></br>
+                                {'Monto:'+toMoney(getdataCalculoSalida.MontoPagar)}<br></br>
                                 {'---------------------------------------------------'}<br></br>
                                 <div dangerouslySetInnerHTML={{ __html: getMensaje }}/>
                                 {'---------------------------------------------------'}<br></br>
+                                {'Ticket #'}{getTicketId}<br></br>
+                                {'Ticket No Fiscal'} <br></br>
                                 {'Lenin Soft - 304-522-5936'}
                             </p>
                             </div>
@@ -427,6 +441,8 @@ useEffect(() => {
                                 {'---------------------------------------------------'}<br></br>
                                 <div dangerouslySetInnerHTML={{ __html: getMensaje }}/>
                                 {'---------------------------------------------------'}<br></br>
+                                {'Ticket #'}{getTicketId}<br></br>
+                                {'Ticket No Fiscal'} <br></br>
                                 {'Lenin Soft - 304-522-5936'}
                             </p>
                             </div>
